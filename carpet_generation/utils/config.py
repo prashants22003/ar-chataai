@@ -46,7 +46,7 @@ class Config:
     MATERIAL_METALLIC = 0.0  # Metallic property (0.0 = non-metal, 1.0 = metal)
     
     # Export settings
-    GLB_COMPRESSION = True  # Enable Draco compression for smaller files
+    GLB_COMPRESSION = False  # Enable Draco compression for smaller files
     EXPORT_TEXTURES_EMBEDDED = True  # Embed textures in GLB file
     
     # Image processing
