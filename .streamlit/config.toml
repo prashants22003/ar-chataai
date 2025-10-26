@@ -1,0 +1,20 @@
+# Streamlit Configuration for Carpet 3D Model Generator
+
+[theme]
+# Primary color scheme
+primaryColor = "#667eea"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#f0f2f6"
+textColor = "#262730"
+font = "sans serif"
+
+[server]
+# Server settings
+maxUploadSize = 50
+enableXsrfProtection = true
+enableCORS = false
+
+[browser]
+# Browser settings
+gatherUsageStats = false
+

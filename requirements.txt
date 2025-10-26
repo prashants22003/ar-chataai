@@ -1,0 +1,27 @@
+# Carpet 3D Model Generator - Dependencies
+
+# Image Processing
+opencv-python>=4.8.0
+numpy>=1.24.0
+Pillow>=10.0.0
+
+# 3D Model Generation
+trimesh>=4.0.0
+pygltflib>=1.16.0
+numpy-stl>=3.0.0
+
+# USDZ Conversion
+usd-core>=23.08
+
+# Scientific Computing
+scipy>=1.11.0
+
+# Optional: For better mesh operations
+networkx>=3.0
+
+# Optional: For visualization and debugging
+matplotlib>=3.7.0
+
+# Web UI
+streamlit>=1.28.0
+
