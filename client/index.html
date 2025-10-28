@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR Carpet Model Generator</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <h1 class="title">AR Carpet Model Generator</h1>
+            <p class="subtitle">Transform your carpet images into interactive 3D models</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <div class="content-grid">
+                <!-- Left Column: Form -->
+                <div class="form-container">
+                    <div class="form-card">
+                        <h2 class="form-title">Model Configuration</h2>
+                        
+                        <!-- Dimensions Form -->
+                        <div class="form-section">
+                            <h3 class="section-title">Dimensions</h3>
+                            <div class="input-group">
+                                <label for="length" class="input-label">
+                                    <span class="label-icon">📏</span>
+                                    Length (meters)
+                                </label>
+                                <input 
+                                    type="number" 
+                                    id="length" 
+                                    class="input-field" 
+                                    min="0.5" 
+                                    max="10" 
+                                    step="0.1" 
+                                    value="2"
+                                    placeholder="2.0"
+                                >
+                            </div>
+                            
+                            <div class="input-group">
+                                <label for="width" class="input-label">
+                                    <span class="label-icon">📐</span>
+                                    Width (meters)
+                                </label>
+                                <input 
+                                    type="number" 
+                                    id="width" 
+                                    class="input-field" 
+                                    min="0.5" 
+                                    max="10" 
+                                    step="0.1" 
+                                    value="3"
+                                    placeholder="3.0"
+                                >
+                            </div>
+                            
+                            <div class="input-group">
+                                <label for="thickness" class="input-label">
+                                    <span class="label-icon">📊</span>
+                                    Thickness (millimeters)
+                                </label>
+                                <input 
+                                    type="number" 
+                                    id="thickness" 
+                                    class="input-field" 
+                                    min="1" 
+                                    max="20" 
+                                    step="0.5" 
+                                    value="5"
+                                    placeholder="5.0"
+                                >
+                            </div>
+                        </div>
+
+                        <!-- Image Upload -->
+                        <div class="form-section">
+                            <h3 class="section-title">Carpet Image</h3>
+                            <div class="upload-area" id="uploadArea">
+                                <div class="upload-content" id="uploadContent">
+                                    <div class="upload-icon">📷</div>
+                                    <p class="upload-text">Click to upload carpet image</p>
+                                    <p class="upload-subtext">JPG, PNG, JPEG up to 20MB</p>
+                                </div>
+                                <input 
+                                    type="file" 
+                                    id="imageInput" 
+                                    accept="image/jpeg,image/jpg,image/png" 
+                                    hidden
+                                >
+                            </div>
+                            
+                            <!-- Image Preview -->
+                            <div class="image-preview" id="imagePreview" style="display: none;">
+                                <img id="previewImage" alt="Uploaded carpet">
+                                <button class="remove-image" id="removeImage">✕</button>
+                            </div>
+                        </div>
+
+                        <!-- Generate Button -->
+                        <button class="generate-btn" id="generateBtn" disabled>
+                            <span class="btn-icon">🚀</span>
+                            <span class="btn-text">Generate 3D Model</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right Column: Model Preview -->
+                <div class="preview-container" id="previewContainer" style="display: none;">
+                    <div class="preview-card">
+                        <h2 class="preview-title">Generated Model</h2>
+                        
+                        <!-- Model Viewer -->
+                        <div class="model-viewer-container">
+                            <model-viewer 
+                                id="modelViewer"
+                                src=""
+                                alt="Generated 3D Model"
+                                auto-rotate
+                                camera-controls
+                                touch-action="pan-y"
+                                camera-orbit="45deg 75deg 2.5m"
+                                min-camera-orbit="auto auto 1.5m"
+                                max-camera-orbit="auto auto 4m"
+                                field-of-view="30deg"
+                                camera-target="0m 0m 0m"
+                                loading="eager"
+                                reveal="auto">
+                                
+                                <!-- Loading placeholder -->
+                                <div class="model-loading" slot="poster">
+                                    <div class="loading-spinner"></div>
+                                    <p>Loading 3D Model...</p>
+                                </div>
+                            </model-viewer>
+                        </div>
+
+                        <!-- AR Button -->
+                        <div class="ar-section">
+                            <button class="ar-btn" id="arBtn">
+                                <div class="ar-icon">📱</div>
+                                <div class="ar-content">
+                                    <h3>View in Room</h3>
+                                    <p>Open in AR</p>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Progress Overlay -->
+    <div class="progress-overlay" id="progressOverlay" style="display: none;">
+        <div class="progress-container">
+            <div class="progress-card">
+                <h3 class="progress-title">Generating 3D Model</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-text">
+                    <span id="progressPercent">0%</span>
+                    <span id="progressStatus">Initializing...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/api.js"></script>
+    <script src="js/modelViewer.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,2 +1,4 @@
 link_pipeline/
 output/
+.env
+.venv/
