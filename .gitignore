@@ -1,70 +1,7 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# Virtual Environment
-venv/
-env/
-ENV/
-
-# IDEs
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# Generated Files - Exclude all generated assets
-static/uploads/*
-static/textures/*
-static/glb_exports/*
-static/usdz_exports/*
-static/basecolor/*
-static/corrected/*
-static/normal/*
-
-# But keep the directory structure (uncomment if you want to track .gitkeep files)
-# !static/uploads/.gitkeep
-# !static/basecolor/.gitkeep
-# !static/corrected/.gitkeep
-# !static/normal/.gitkeep
-# !static/glb_exports/.gitkeep
-# !static/usdz_exports/.gitkeep
-
-# Logs
-*.log
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-
-# Plan files
-*.plan.md
-
-# Streamlit
-.streamlit/secrets.toml
-.streamlit/credentials.toml
-
+.env
+.streamlit/
+.ar_chataai/
+output/
+Testing_Images/
+tests/
+supabase_migrations/

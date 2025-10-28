@@ -88,9 +88,9 @@ def generate_basecolor(
     output_filename = f"{input_name}_basecolor.png"
     output_path = Config.get_basecolor_path(output_filename)
     
-    # Save as PNG in original BGR format
-    Config.ensure_directories()
-    cv2.imwrite(str(output_path), basecolor, [cv2.IMWRITE_PNG_COMPRESSION, 9])
+    # Export in correct RGB format using our export function
+    from ..export_functions.texture_export import export_png_rgb
+    export_png_rgb(basecolor, str(output_path))
     logger.info(f"Saved basecolor texture to: {output_path}")
     
     return str(output_path)

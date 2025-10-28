@@ -13,7 +13,8 @@ class Config:
     
     # Base directories
     BASE_DIR = Path(__file__).resolve().parent.parent.parent
-    STATIC_DIR = BASE_DIR / "static"
+    OUTPUT_DIR = BASE_DIR / "output"
+    STATIC_DIR = OUTPUT_DIR / "static"
     
     # Input/Output directories
     UPLOADS_DIR = STATIC_DIR / "uploads"

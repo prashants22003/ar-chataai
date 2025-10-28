@@ -10,13 +10,13 @@ import sys
 from pathlib import Path
 from typing import Optional, Tuple
 
-from carpet_generation.image_processing import (
+from .image_processing import (
     correct_perspective,
     generate_basecolor,
     generate_normal_map
 )
-from carpet_generation.model_generation import generate_carpet_model
-from carpet_generation.utils.config import Config
+from .model_generation import generate_carpet_model
+from .utils.config import Config
 
 # Configure logging
 logging.basicConfig(

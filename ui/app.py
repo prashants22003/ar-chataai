@@ -6,6 +6,7 @@ A simple frontend interface for testing the carpet 3D model generation pipeline.
 
 import streamlit as st
 import os
+import sys
 import time
 import numpy as np
 from pathlib import Path
@@ -13,8 +14,23 @@ import tempfile
 from PIL import Image
 import cv2
 
-from main import process_carpet
-from carpet_generation.utils.config import Config
+# Add src to path for imports
+src_path = Path(__file__).parent.parent / "src"
+sys.path.insert(0, str(src_path))
+
+from model_pipeline.main import process_carpet
+from model_pipeline.utils.config import Config
+
+# Use Node.js service for uploads (preferred)
+# Falls back to Python Supabase client if Node.js service not available
+try:
+    from link_pipeline.nodejs_client import get_uploader
+    use_nodejs = True
+except ImportError:
+    from link_pipeline import supabase_upload as get_uploader_module
+    def get_uploader():
+        return get_uploader_module.get_uploader()
+    use_nodejs = False
 
 
 # Page configuration
@@ -76,6 +92,10 @@ def initialize_session_state():
         st.session_state.usdz_path = None
     if 'error_message' not in st.session_state:
         st.session_state.error_message = None
+    if 'shareable_link' not in st.session_state:
+        st.session_state.shareable_link = None
+    if 'supabase_enabled' not in st.session_state:
+        st.session_state.supabase_enabled = False
 
 
 def reset_results():
@@ -86,6 +106,7 @@ def reset_results():
     st.session_state.glb_path = None
     st.session_state.usdz_path = None
     st.session_state.error_message = None
+    st.session_state.shareable_link = None
     # Reset corners when new image is uploaded
     if 'corners' in st.session_state:
         st.session_state.corners = []
@@ -112,7 +133,7 @@ def process_carpet_with_progress(input_image_path, progress_bar, status_text):
         if not os.path.exists(input_image_path):
             raise ValueError(f"Input image not found: {input_image_path}")
         
-        from carpet_generation.image_processing import correct_perspective
+        from model_pipeline.image_processing import correct_perspective
         # Use manual corners if available, otherwise None (will use full image)
         manual_corners = st.session_state.corners[:4] if st.session_state.corners else None
         corrected_image, corrected_path = correct_perspective(input_image_path, manual_corners=manual_corners)
@@ -129,7 +150,7 @@ def process_carpet_with_progress(input_image_path, progress_bar, status_text):
         status_text.text("🎨 Step 2/5: Generating basecolor texture...")
         progress_bar.progress(0.3)
         
-        from carpet_generation.image_processing import generate_basecolor
+        from model_pipeline.image_processing import generate_basecolor
         output_name = Path(input_image_path).stem
         basecolor_path = generate_basecolor(corrected_image, output_name=output_name)
         
@@ -145,7 +166,7 @@ def process_carpet_with_progress(input_image_path, progress_bar, status_text):
         status_text.text("🗺️ Step 3/5: Generating normal map...")
         progress_bar.progress(0.55)
         
-        from carpet_generation.image_processing import generate_normal_map
+        from model_pipeline.image_processing import generate_normal_map
         normal_map_path = generate_normal_map(basecolor_path, output_name=output_name)
         st.session_state.normal_map_path = normal_map_path
         progress_bar.progress(0.7)
@@ -155,7 +176,7 @@ def process_carpet_with_progress(input_image_path, progress_bar, status_text):
         status_text.text("🔨 Step 4/5: Creating 3D mesh with displaced geometry...")
         progress_bar.progress(0.75)
         
-        from carpet_generation.model_generation import generate_carpet_model
+        from model_pipeline.model_generation import generate_carpet_model
         
         status_text.text("📦 Step 5/5: Exporting to GLB format...")
         progress_bar.progress(0.85)
@@ -182,6 +203,10 @@ def process_carpet_with_progress(input_image_path, progress_bar, status_text):
 def main():
     """Main Streamlit application."""
     initialize_session_state()
+    
+    # Initialize uploader (Node.js service if available, else Python client)
+    uploader = get_uploader()
+    st.session_state.supabase_enabled = uploader.is_enabled()
     
     # Header
     st.markdown("""
@@ -536,6 +561,52 @@ def main():
                     st.caption("💡 Optimized for iOS ARKit and Apple AR experiences")
                 else:
                     st.error("USDZ file not found")
+            
+            # Shareable Link Section
+            if st.session_state.supabase_enabled:
+                st.markdown("---")
+                st.markdown("### 🔗 Share for AR Viewing")
+                
+                col1, col2 = st.columns([2, 1])
+                
+                with col1:
+                    if st.button("📤 Upload to Cloud & Generate Shareable Link", type="primary", use_container_width=True):
+                        with st.spinner("Uploading to Supabase..."):
+                            result = uploader.upload_model(
+                                st.session_state.glb_path,
+                                model_name=Path(st.session_state.glb_path).stem
+                            )
+                            
+                            if result:
+                                shareable_url, public_url = result
+                                st.session_state.shareable_link = shareable_url
+                                st.success("✅ Model uploaded successfully!")
+                            else:
+                                st.error("❌ Failed to upload model. Check Supabase configuration.")
+                
+                with col2:
+                    if st.session_state.shareable_link:
+                        st.markdown("### Link Generated!")
+                
+                # Display shareable link if available
+                if st.session_state.shareable_link:
+                    st.markdown(f"""
+                        <div style="background-color: #f0f2f6; padding: 1rem; border-radius: 8px; border-left: 4px solid #667eea; margin: 1rem 0;">
+                            <h4>🎉 Your AR Model is Ready!</h4>
+                            <p>Share this link to let others view your model in AR:</p>
+                            <div style="background-color: white; padding: 0.5rem; border-radius: 4px; font-family: monospace; word-break: break-all;">
+                                {st.session_state.shareable_link}
+                            </div>
+                            <div style="margin-top: 0.5rem;">
+                                <a href="{st.session_state.shareable_link}" target="_blank" style="text-decoration: none; padding: 0.5rem 1rem; background-color: #667eea; color: white; border-radius: 4px; display: inline-block;">
+                                    🌐 Open in AR Viewer →
+                                </a>
+                            </div>
+                        </div>
+                    """, unsafe_allow_html=True)
+            else:
+                st.markdown("---")
+                st.info("💡 **Enable AR Sharing**: Configure Supabase to get shareable AR links. See SUPABASE_SETUP.md for instructions.")
     
     else:
         # Show placeholder when no file is uploaded
