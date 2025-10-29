@@ -76,11 +76,13 @@ class SupabaseService:
                 file_options={"content-type": "model/gltf-binary"}
             )
             
-            if result.get("error"):
-                logger.error(f"Upload error: {result['error']}")
+            # Check for upload errors in the response
+            # The result is an UploadResponse object, check its properties
+            if hasattr(result, 'error') and result.error:
+                logger.error(f"Upload error: {result.error}")
                 return {
                     "success": False,
-                    "error": result["error"]["message"]
+                    "error": str(result.error)
                 }
             
             # Get public URL

@@ -36,6 +36,11 @@ async def generate_model_with_ar_link(
     Generate 3D model from uploaded image and create AR viewer link.
     """
     try:
+        # Log incoming request
+        logger.info(f"Received upload request for: {image.filename}")
+        logger.info(f"File size: {image.size} bytes")
+        logger.info(f"Content type: {image.content_type}")
+        
         # Validate file type
         if not file_manager.validate_file_type(image.filename):
             raise HTTPException(
@@ -112,14 +117,18 @@ async def generate_model_with_ar_link(
             logger.info(f"Public URL: {upload_result['public_url']}")
             logger.info(f"AR Viewer Link: {ar_viewer_link}")
             
-            return UploadResponse(
-                filename=glb_filename,
-                public_url=upload_result["public_url"],
-                ar_viewer_link=ar_viewer_link,
-                size=len(glb_data),
-                dimensions=dimensions,
-                message="3D model generated and AR link created successfully!"
-            )
+            response_data = {
+                "filename": glb_filename,
+                "public_url": upload_result["public_url"],
+                "ar_viewer_link": ar_viewer_link,
+                "size": len(glb_data),
+                "dimensions": dimensions.dict(),
+                "message": "3D model generated and AR link created successfully!"
+            }
+            
+            logger.info(f"Returning response: {response_data}")
+            
+            return UploadResponse(**response_data)
             
         except Exception as e:
             # Clean up temporary image file on error
