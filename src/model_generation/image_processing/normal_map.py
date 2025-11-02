@@ -105,9 +105,9 @@ def generate_normal_map(
         output_filename = f"{input_path.stem.replace('_corrected', '')}_normal.png"
     output_path = Config.get_normal_path(output_filename)
     
-    # Export in correct RGB format using our export function
-    from ..export_functions.texture_export import export_png_rgb
-    export_png_rgb(normal_map, str(output_path))
+    # Export as linear RGB (no ICC/gAMA/sRGB) for normal maps
+    from ..export_functions.texture_export import export_png_linear_rgb
+    export_png_linear_rgb(normal_map, str(output_path))
     logger.info(f"Saved normal map to: {output_path}")
     
     return str(output_path)

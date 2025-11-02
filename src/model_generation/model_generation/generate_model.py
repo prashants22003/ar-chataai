@@ -14,6 +14,7 @@ import logging
 import base64
 import json
 from PIL import Image
+from PIL import PngImagePlugin
 import pygltflib
 from pygltflib import GLTF2, Buffer, BufferView, Accessor, Mesh, Primitive, Attributes, Material, PbrMetallicRoughness, TextureInfo, Image as GLTFImage, Texture, Sampler
 
@@ -483,16 +484,42 @@ def export_glb_with_pygltflib(
     gltf.accessors = accessors
     
     # Create textures and images
-    # Convert PIL images to bytes
-    import io
-    basecolor_bytes = io.BytesIO()
-    basecolor_image.save(basecolor_bytes, format='PNG')
-    basecolor_data = basecolor_bytes.getvalue()
-    
-    normal_bytes = io.BytesIO()
-    normal_map_image.save(normal_bytes, format='PNG')
-    normal_data = normal_bytes.getvalue()
-    
+    if getattr(Config, 'USE_KTX2', False):
+        # Build KTX2 using toktx
+        from ..export_functions.ktx2 import build_ktx2
+        basecolor_ktx2 = Path(basecolor_path).with_suffix('.ktx2')
+        normal_ktx2 = Path(normal_map_path).with_suffix('.ktx2')
+        build_ktx2(basecolor_path, basecolor_ktx2, is_normal=False, quality=getattr(Config, 'KTX2_QUALITY', 'etc1s'))
+        build_ktx2(normal_map_path, normal_ktx2, is_normal=True, quality=getattr(Config, 'KTX2_QUALITY', 'etc1s'))
+
+        with open(basecolor_ktx2, 'rb') as f:
+            basecolor_data = f.read()
+        with open(normal_ktx2, 'rb') as f:
+            normal_data = f.read()
+    else:
+        # Fallback to PNG embedding
+        import io
+        basecolor_bytes = io.BytesIO()
+        basecolor_image.save(basecolor_bytes, format='PNG')
+        basecolor_data = basecolor_bytes.getvalue()
+        
+        normal_bytes = io.BytesIO()
+        # Save normal as linear: strip ICC/sRGB and write gAMA=1.0
+        pnginfo = PngImagePlugin.PngInfo()
+        # Rebuild image from array to drop residual info completely
+        import numpy as _np
+        _n_arr = _np.array(normal_map_image.convert('RGB'))
+        normal_clean = Image.fromarray(_n_arr, mode='RGB')
+        normal_clean.save(
+            normal_bytes,
+            format='PNG',
+            pnginfo=pnginfo,
+            icc_profile=None,
+            optimize=False,
+            gamma=1.0
+        )
+        normal_data = normal_bytes.getvalue()
+
     # Add texture data to buffer
     basecolor_texture_offset, basecolor_texture_size = add_to_buffer(np.frombuffer(basecolor_data, dtype=np.uint8))
     normal_texture_offset, normal_texture_size = add_to_buffer(np.frombuffer(normal_data, dtype=np.uint8))
@@ -521,11 +548,11 @@ def export_glb_with_pygltflib(
     # Create images
     basecolor_img = GLTFImage()
     basecolor_img.bufferView = len(buffer_views) - 2
-    basecolor_img.mimeType = "image/png"
+    basecolor_img.mimeType = "image/ktx2" if getattr(Config, 'USE_KTX2', False) else "image/png"
     
     normal_img = GLTFImage()
     normal_img.bufferView = len(buffer_views) - 1
-    normal_img.mimeType = "image/png"
+    normal_img.mimeType = "image/ktx2" if getattr(Config, 'USE_KTX2', False) else "image/png"
     
     gltf.images = [basecolor_img, normal_img]
     
@@ -559,6 +586,7 @@ def export_glb_with_pygltflib(
     
     normal_texture_info = TextureInfo()
     normal_texture_info.index = 1
+    normal_texture_info.scale = 1.0
     
     material = Material()
     material.pbrMetallicRoughness = pbr
@@ -585,6 +613,16 @@ def export_glb_with_pygltflib(
     mesh_obj.name = "carpet_mesh"
     
     gltf.meshes = [mesh_obj]
+
+    # Declare KHR_texture_basisu for KTX2
+    if getattr(Config, 'USE_KTX2', False):
+        used = set(gltf.extensionsUsed or [])
+        used.add("KHR_texture_basisu")
+        gltf.extensionsUsed = list(used)
+        # Optionally require the extension (uncomment if you want to enforce)
+        # required = set(gltf.extensionsRequired or [])
+        # required.add("KHR_texture_basisu")
+        # gltf.extensionsRequired = list(required)
     
     # Create scene
     from pygltflib import Node, Scene

@@ -50,6 +50,8 @@ class Config:
     # Export settings
     GLB_COMPRESSION = False  # Enable Draco compression for smaller files
     EXPORT_TEXTURES_EMBEDDED = True  # Embed textures in GLB file
+    USE_KTX2 = True  # Use KTX2 textures via KHR_texture_basisu
+    KTX2_QUALITY = 'etc1s'  # 'etc1s' or 'uastc'
     
     # Image processing
     CANNY_THRESHOLD1 = 50

@@ -102,16 +102,12 @@ async def generate_model_with_ar_link(
             # Generate AR viewer link
             ar_viewer_link = f"/api/ar-viewer?model_url={upload_result['public_url']}"
             
-            # Schedule cleanup of temporary files
+            # Schedule cleanup of temporary upload file only (keep generated models for validation)
             background_tasks.add_task(
                 file_manager.cleanup_file,
                 temp_image_path
             )
-            background_tasks.add_task(
-                model_generator.cleanup_generated_files,
-                generation_result["glb_path"],
-                generation_result["usdz_path"]
-            )
+            # Do NOT delete generated model files so they remain in output directories
             
             logger.info(f"Model generation successful: {glb_filename}")
             logger.info(f"Public URL: {upload_result['public_url']}")

@@ -87,6 +87,44 @@ def export_png_rgb(
     return str(output_path)
 
 
+def export_png_linear_rgb(
+    image: np.ndarray,
+    output_path: Union[str, Path],
+    compression: int = 9
+) -> str:
+    """
+    Export PNG with no ICC/gAMA/sRGB chunks (linear). Use for normal maps.
+    """
+    from PIL import Image, PngImagePlugin
+    
+    # Ensure directory exists
+    Config.ensure_directories()
+    
+    # Convert BGR to RGB using our manual swap
+    rgb_image = convert_bgr_to_rgb(image)
+    
+    # Convert to PIL Image and ensure 3-channel RGB
+    pil_image = Image.fromarray(rgb_image).convert('RGB')
+    
+    # Empty PNG metadata to avoid embedding color profiles/gamma
+    pnginfo = PngImagePlugin.PngInfo()
+    
+    # Save as PNG without ICC profile or gamma chunks
+    output_path = Path(output_path)
+    pil_image.save(
+        str(output_path),
+        format='PNG',
+        compress_level=compression,
+        pnginfo=pnginfo,
+        icc_profile=None,
+        optimize=False,
+        gamma=1.0
+    )
+    
+    logger.info(f"Exported linear PNG (no color profile) to: {output_path}")
+    
+    return str(output_path)
+
 def export_basecolor_texture(
     processed_image: np.ndarray,
     output_name: str,

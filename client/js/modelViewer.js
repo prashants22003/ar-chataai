@@ -60,11 +60,27 @@ class ModelViewer {
 
         console.log('Loading model:', modelUrl);
         this.showLoading();
-        
-        // Set model source
-        this.modelViewer.src = modelUrl;
-        
-        // Configure AR
+
+        // Use three.js preview with KTX2 support for reliability
+        const doLoad = async () => {
+            try {
+                // Hide <model-viewer> during preview (still used for AR button)
+                this.modelViewer.style.display = 'none';
+                if (window.threePreview && typeof window.threePreview.init === 'function') {
+                    window.threePreview.init();
+                    await window.threePreview.loadModel(modelUrl);
+                }
+                this.hideLoading();
+            } catch (e) {
+                console.error('Three preview failed, falling back to <model-viewer>', e);
+                this.modelViewer.style.display = '';
+                this.modelViewer.src = modelUrl;
+            }
+        };
+
+        doLoad();
+
+        // Configure AR (still available through the button)
         this.modelViewer.ar = true;
         this.modelViewer.arModes = 'webxr scene-viewer quick-look';
     }
